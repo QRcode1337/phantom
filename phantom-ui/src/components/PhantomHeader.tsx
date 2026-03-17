@@ -5,9 +5,10 @@ interface Props {
   subtitle?: string;
   status?: "live" | "idle" | "error";
   icon?: string;
+  liveCount?: number;
 }
 
-export default function PhantomHeader({ section, subtitle, status = "idle", icon }: Props) {
+export default function PhantomHeader({ section, subtitle, status = "idle", icon, liveCount }: Props) {
   const dotColor =
     status === "live"  ? "bg-primary glow-green" :
     status === "error" ? "bg-alert glow-red"      :
@@ -39,7 +40,24 @@ export default function PhantomHeader({ section, subtitle, status = "idle", icon
 
       {subtitle && (
         <div className="flex items-center gap-2">
-          <span className={`w-1.5 h-1.5 rounded-full ${dotColor} ${status === "live" ? "animate-pulse" : ""}`} />
+          <div className="relative flex items-center">
+            <span className={`w-1.5 h-1.5 rounded-full ${dotColor} ${status === "live" ? "animate-pulse" : ""}`} />
+            {liveCount != null && liveCount > 0 && (
+              <span
+                className="absolute -top-1.5 -right-3 min-w-[14px] h-[14px] rounded-full flex items-center justify-center font-mono text-[7px] leading-none animate-pulse"
+                style={{
+                  background: "rgba(0,255,136,0.15)",
+                  border: "0.5px solid rgba(0,255,136,0.5)",
+                  color: "#00ff88",
+                  boxShadow: "0 0 6px rgba(0,255,136,0.3)",
+                  paddingLeft: "3px",
+                  paddingRight: "3px",
+                }}
+              >
+                {liveCount > 99 ? "99+" : liveCount}
+              </span>
+            )}
+          </div>
           <span className="label">{subtitle}</span>
         </div>
       )}

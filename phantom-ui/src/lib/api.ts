@@ -123,6 +123,13 @@ export interface PersistableSignal {
   persisted: boolean;
 }
 
+export interface DaemonStatus {
+  running: boolean;
+  feeds: Record<string, { last_poll: string | null; buffer_size: number; errors: number }>;
+  signals_generated: number;
+  uptime_seconds: number;
+}
+
 export interface AnalyzeSignalsRequest {
   lat?: number;
   lon?: number;
@@ -205,5 +212,9 @@ export const api = {
      */
     analyze: (req?: AnalyzeSignalsRequest) =>
       post<AnalyzeSignalsResponse>("/api/signals/analyze", req ?? {}),
+  },
+
+  daemon: {
+    status: () => get<DaemonStatus>("/api/daemon/status"),
   },
 };

@@ -6,13 +6,22 @@ async fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
     let live = args.iter().any(|a| a == "--live");
     let api = args.iter().any(|a| a == "--api");
+    let daemon_flag = args.iter().any(|a| a == "--daemon");
+    let daemon_env = std::env::var("PHANTOM_DAEMON")
+        .map(|v| v == "1" || v.to_lowercase() == "true")
+        .unwrap_or(false);
+    let run_daemon = daemon_flag || daemon_env;
 
     println!("Phantom Anomaly Detection Engine");
     println!("================================");
-    
+
     if api {
-        println!("Mode: API (starting axum server on port 8080)\n");
-        phantom::api::start_server().await;
+        if run_daemon {
+            println!("Mode: API + DAEMON (server on port 8080 with background polling)\n");
+        } else {
+            println!("Mode: API (starting axum server on port 8080)\n");
+        }
+        phantom::api::start_server_with_daemon(run_daemon).await;
         Ok(())
     } else if live {
         println!("Mode: LIVE (fetching real data)\n");

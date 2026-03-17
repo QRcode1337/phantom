@@ -3,12 +3,44 @@
 import { useEffect, useState } from "react";
 import PhantomHeader from "@/components/PhantomHeader";
 import NavPill from "@/components/NavPill";
-import { api, HealthResponse, AnalyzeSignalsResponse } from "@/lib/api";
+import { api, HealthResponse, AnalyzeSignalsResponse, SignalRecord } from "@/lib/api";
+import { useSignalStream } from "@/lib/useSignalStream";
 
 export default function OverviewPage() {
   const [health, setHealth]   = useState<HealthResponse | null>(null);
   const [signals, setSignals] = useState<AnalyzeSignalsResponse | null>(null);
   const [signalsLoading, setSignalsLoading] = useState(true);
+  // Live chaos score override from SSE — supersedes the batch analyze result
+  const [liveChaos, setLiveChaos] = useState<number | undefined>(undefined);
+  // Per-feed action overrides from SSE signals
+  const [liveActions, setLiveActions] = useState<Record<string, string>>({});
+
+  const { signals: sseSignals, latestSignalTimestamp } = useSignalStream();
+
+  // Update live state whenever a new SSE signal arrives
+  useEffect(() => {
+    if (sseSignals.length === 0) return;
+    const newest: SignalRecord = sseSignals[0];
+
+    // Update chaos score if higher than current live value
+    setLiveChaos((prev) =>
+      prev === undefined || newest.chaos_score > prev ? newest.chaos_score : prev
+    );
+
+    // Update the action for the matching feed key
+    const sigType = newest.signal_type.toLowerCase();
+    const mktType = newest.market_type.toLowerCase();
+    const feedKey =
+      sigType.includes("weather") || mktType.includes("weather") ? "weather" :
+      sigType.includes("btc") || mktType.includes("btc")         ? "btc"     :
+      sigType.includes("seismic") || mktType.includes("seismic") ? "seismic" :
+      null;
+
+    if (feedKey) {
+      setLiveActions((prev) => ({ ...prev, [feedKey]: newest.action }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [latestSignalTimestamp]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -30,18 +62,21 @@ export default function OverviewPage() {
 
   const feedCount = health ? Object.keys(health.feeds).length : 0;
 
-  // Derive top-level chaos score from the most-chaotic signal returned
-  const latestChaos = signals?.signals.length
+  // Derive top-level chaos score: prefer live SSE value, fall back to batch result
+  const batchChaos = signals?.signals.length
     ? Math.max(...signals.signals.map((s) => s.record.chaos_score))
     : undefined;
+  const latestChaos = liveChaos ?? batchChaos;
   const chaosDisplay = signalsLoading ? "…" : latestChaos !== undefined ? latestChaos.toFixed(2) : "—";
   const chaosColor   = latestChaos !== undefined
     ? latestChaos > 0.7 ? "text-alert" : latestChaos > 0.4 ? "text-solar" : "text-primary"
     : "text-primary";
 
-  // Derive per-feed actions from the signals engine
+  // Derive per-feed actions: prefer live SSE overrides, fall back to batch
   function feedAction(signalType: string, healthKey: string): string {
     if (health?.feeds[healthKey] !== "available") return "OFFLINE";
+    // Live SSE override takes precedence
+    if (liveActions[healthKey]) return liveActions[healthKey];
     if (!signals || signalsLoading) return "WATCH";
     const match = signals.signals.find(
       (s) => s.record.signal_type.toLowerCase().includes(signalType) ||

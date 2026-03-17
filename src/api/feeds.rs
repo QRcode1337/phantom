@@ -1,6 +1,7 @@
 use axum::{Json, response::IntoResponse, http::StatusCode, extract::Query};
 use serde::{Deserialize, Serialize};
 use crate::feeds;
+use crate::feeds::kalshi::KalshiClient;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Instant, Duration};
@@ -36,6 +37,20 @@ pub struct OpenSkyQuery {
     pub lamax: Option<f64>,
     pub lomax: Option<f64>,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct PriceQuery {
+    pub asset: String,
+    pub days: Option<usize>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct KalshiQuery {
+    pub series: String,
+}
+
+/// Allowed CoinGecko coin IDs for the generic price endpoint.
+const ALLOWED_ASSETS: &[&str] = &["bitcoin", "ethereum", "solana"];
 
 // Simple in-memory cache
 struct CacheEntry {
@@ -79,12 +94,20 @@ where
 }
 
 pub async fn health() -> impl IntoResponse {
+    let kalshi_status = if KalshiClient::new().is_ok() {
+        "available"
+    } else {
+        "unavailable (credentials not configured)"
+    };
+
     (StatusCode::OK, Json(serde_json::json!({
         "status": "ok",
         "feeds": {
             "weather": "available",
             "seismic": "available",
             "btc": "available",
+            "price": "available",
+            "kalshi": kalshi_status,
             "opensky": "available"
         }
     })))
@@ -218,5 +241,102 @@ pub async fn get_opensky(Query(q): Query<OpenSkyQuery>) -> impl IntoResponse {
     match result {
         Ok(val) => (StatusCode::OK, Json(val)).into_response(),
         Err(e) => (StatusCode::BAD_GATEWAY, Json(serde_json::json!({ "error": e }))).into_response(),
+    }
+}
+
+// ── GET /api/feeds/price ─────────────────────────────────────────────────────
+
+pub async fn get_price(Query(q): Query<PriceQuery>) -> impl IntoResponse {
+    let asset = q.asset.to_lowercase();
+    if !ALLOWED_ASSETS.contains(&asset.as_str()) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": format!(
+                    "Unsupported asset '{}'. Allowed: {:?}",
+                    asset, ALLOWED_ASSETS
+                )
+            })),
+        )
+            .into_response();
+    }
+
+    let days = q.days.unwrap_or(30);
+    let key = format!("price-{}-{}", asset, days);
+    let result = get_from_cache_or_fetch(key, || {
+        let asset = asset.clone();
+        async move {
+            match feeds::prices::fetch_exchange_price(&asset, days).await {
+                Ok(series) => {
+                    let resp = FeedResponse {
+                        series,
+                        source: "coingecko".to_string(),
+                        points: 0,
+                    };
+                    serde_json::to_value(resp).map_err(|e| e.to_string())
+                }
+                Err(e) => Err(e.to_string()),
+            }
+        }
+    })
+    .await;
+
+    match result {
+        Ok(mut val) => {
+            let points_count = val
+                .get("series")
+                .and_then(|s| s.as_array())
+                .map(|a| a.len());
+
+            if let (Some(p), Some(points_val)) = (points_count, val.get_mut("points")) {
+                *points_val = serde_json::Value::from(p);
+            }
+            (StatusCode::OK, Json(val)).into_response()
+        }
+        Err(e) => {
+            (StatusCode::BAD_GATEWAY, Json(serde_json::json!({ "error": e }))).into_response()
+        }
+    }
+}
+
+// ── GET /api/feeds/kalshi ────────────────────────────────────────────────────
+
+pub async fn get_kalshi_markets(Query(q): Query<KalshiQuery>) -> impl IntoResponse {
+    let client = match KalshiClient::new() {
+        Ok(c) => c,
+        Err(_) => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({
+                    "error": "Kalshi credentials are not configured. Set KALSHI_API_KEY_ID and KALSHI_PRIVATE_KEY_PATH environment variables, or create ~/.config/kalshi/credentials.json."
+                })),
+            )
+                .into_response();
+        }
+    };
+
+    let key = format!("kalshi-series-{}", q.series);
+    let series = q.series.clone();
+    let result = get_from_cache_or_fetch(key, || async move {
+        match client.get_markets(&series).await {
+            Ok(markets) => {
+                let count = markets.len();
+                serde_json::to_value(serde_json::json!({
+                    "markets": markets,
+                    "count": count,
+                    "source": "kalshi"
+                }))
+                .map_err(|e| e.to_string())
+            }
+            Err(e) => Err(e.to_string()),
+        }
+    })
+    .await;
+
+    match result {
+        Ok(val) => (StatusCode::OK, Json(val)).into_response(),
+        Err(e) => {
+            (StatusCode::BAD_GATEWAY, Json(serde_json::json!({ "error": e }))).into_response()
+        }
     }
 }

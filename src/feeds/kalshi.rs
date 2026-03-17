@@ -89,10 +89,12 @@ impl KalshiClient {
         // Message to sign: {timestamp}{METHOD}{path}
         let message = format!("{}GET{}", timestamp_ms, full_path);
 
-        // RSA-PSS sign
-        let mut rng = rand::thread_rng();
-        let signature = self.signing_key.sign_with_rng(&mut rng, message.as_bytes());
-        let sig_b64 = base64::engine::general_purpose::STANDARD.encode(signature.to_bytes());
+        // RSA-PSS sign (scoped to drop ThreadRng before any .await)
+        let sig_b64 = {
+            let mut rng = rand::thread_rng();
+            let signature = self.signing_key.sign_with_rng(&mut rng, message.as_bytes());
+            base64::engine::general_purpose::STANDARD.encode(signature.to_bytes())
+        };
 
         let url = format!("{}{}", self.base_url, path);
         let resp = self

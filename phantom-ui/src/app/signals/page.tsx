@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import PhantomHeader from "@/components/PhantomHeader";
 import NavPill from "@/components/NavPill";
 import MiniCard from "@/components/MiniCard";
 import { api, SignalRecord } from "@/lib/api";
+import { useSignalStream } from "@/lib/useSignalStream";
 
 type FilterAction = "ALL" | "ENTER" | "WATCH" | "SKIP";
 
@@ -26,11 +27,44 @@ export default function SignalsPage() {
   const [running, setRunning]   = useState(false);
   const [filter, setFilter]     = useState<FilterAction>("ALL");
   const [error, setError]       = useState<string | null>(null);
+  // Timestamps of signals that should flash on entry
+  const [flashSet, setFlashSet] = useState<Set<string>>(new Set());
+  const seenTimestamps = useRef<Set<string>>(new Set());
+
+  const { signals: liveSignals, status: streamStatus, latestSignalTimestamp } = useSignalStream();
+
+  // Merge incoming SSE signals into the records list
+  useEffect(() => {
+    if (liveSignals.length === 0) return;
+    const newest = liveSignals[0];
+    if (seenTimestamps.current.has(newest.timestamp)) return;
+
+    seenTimestamps.current.add(newest.timestamp);
+
+    setRecords((prev) => {
+      // Avoid duplicates by timestamp
+      if (prev.some((r) => r.timestamp === newest.timestamp)) return prev;
+      return [newest, ...prev];
+    });
+
+    // Trigger flash, then clear after animation completes
+    setFlashSet((prev) => new Set(prev).add(newest.timestamp));
+    setTimeout(() => {
+      setFlashSet((prev) => {
+        const next = new Set(prev);
+        next.delete(newest.timestamp);
+        return next;
+      });
+    }, 2100);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [latestSignalTimestamp]);
 
   const fetchSignals = useCallback(async (action?: string) => {
     try {
       const res = await api.signals.query(action && action !== "ALL" ? { action, limit: 200 } : { limit: 200 });
       setRecords(res.records);
+      // Seed seen set so existing records don't flash
+      res.records.forEach((r) => seenTimestamps.current.add(r.timestamp));
     } catch (e) {
       console.error("[SignalsPage] fetch error:", e);
       setError(e instanceof Error ? e.message : "Failed to load signals");
@@ -79,6 +113,9 @@ export default function SignalsPage() {
   const enterCount = records.filter((r) => r.action === "ENTER").length;
   const watchCount = records.filter((r) => r.action === "WATCH").length;
 
+  // Count signals received this session via SSE
+  const liveCount = liveSignals.length;
+
   const displayed = filter === "ALL"
     ? records
     : records.filter((r) => r.action === filter);
@@ -90,6 +127,7 @@ export default function SignalsPage() {
         subtitle={loading ? "loading…" : running ? "analyzing…" : "live"}
         status={loading || running ? "idle" : "live"}
         icon="monitoring"
+        liveCount={liveCount}
       />
 
       <main className="px-4 space-y-5">
@@ -108,8 +146,27 @@ export default function SignalsPage() {
           />
         </div>
 
+        {/* SSE live indicator */}
+        <div className="flex items-center gap-2 fade-up fade-up-2">
+          <span
+            className="w-1.5 h-1.5 rounded-full shrink-0"
+            style={{
+              backgroundColor: streamStatus === "connected" ? "#00ff88" : streamStatus === "error" ? "#ff3333" : "rgba(255,255,255,0.2)",
+              boxShadow: streamStatus === "connected" ? "0 0 6px rgba(0,255,136,0.6)" : "none",
+            }}
+          />
+          <span
+            className="font-mono text-[8px] tracking-widest uppercase"
+            style={{
+              color: streamStatus === "connected" ? "#00ff88" : streamStatus === "error" ? "#ff3333" : "rgba(255,255,255,0.25)",
+            }}
+          >
+            {streamStatus === "connected" ? "LIVE" : streamStatus === "error" ? "RECONNECTING" : "OFFLINE"}
+          </span>
+        </div>
+
         {/* Filter + Run Analysis bar */}
-        <div className="flex items-center justify-between fade-up fade-up-2">
+        <div className="flex items-center justify-between fade-up fade-up-3">
           <div className="flex items-center gap-1.5">
             {(["ALL", "ENTER", "WATCH", "SKIP"] as FilterAction[]).map((f) => {
               const active = filter === f;
@@ -159,7 +216,7 @@ export default function SignalsPage() {
         )}
 
         {/* Signal list */}
-        <section className="space-y-3 fade-up fade-up-3">
+        <section className="space-y-3 fade-up fade-up-4">
           <div className="flex items-center justify-between px-1">
             <p className="label">Signal History</p>
             <span className="font-mono text-[7px] text-white/20 tracking-widest">
@@ -177,7 +234,11 @@ export default function SignalsPage() {
             </div>
           ) : (
             displayed.map((record, i) => (
-              <SignalCard key={`${record.timestamp}-${i}`} record={record} />
+              <SignalCard
+                key={`${record.timestamp}-${i}`}
+                record={record}
+                flash={flashSet.has(record.timestamp)}
+              />
             ))
           )}
         </section>
@@ -188,7 +249,7 @@ export default function SignalsPage() {
   );
 }
 
-function SignalCard({ record }: { record: SignalRecord }) {
+function SignalCard({ record, flash }: { record: SignalRecord; flash?: boolean }) {
   const isEnter = record.action === "ENTER";
   const isWatch = record.action === "WATCH";
 
@@ -210,7 +271,7 @@ function SignalCard({ record }: { record: SignalRecord }) {
 
   return (
     <div
-      className="glass-card rounded-2xl p-5 relative overflow-hidden"
+      className={`glass-card rounded-2xl p-5 relative overflow-hidden${flash ? " signal-flash" : ""}`}
       style={borderStyle}
     >
       {/* Ambient glow for actionable signals */}

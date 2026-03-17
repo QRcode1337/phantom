@@ -18,7 +18,9 @@ use serde::{Deserialize, Serialize};
 use crate::signals::KalshiSignalEngine;
 use crate::signals::kalshi::{KalshiSignal, SignalAction};
 use crate::feeds;
+use crate::feeds::kalshi::KalshiClient;
 use super::signals_db::{OutcomeResult, SignalOutcome, SignalRecord, SignalStore};
+use super::sse;
 
 // ─── POST /api/signals/record ─────────────────────────────────────────────────
 
@@ -68,6 +70,8 @@ pub async fn record_signal(Json(payload): Json<RecordRequest>) -> impl IntoRespo
         )
             .into_response();
     }
+
+    sse::broadcast_signal(&record);
 
     let total_count = store.count().unwrap_or(0);
 
@@ -159,6 +163,9 @@ pub async fn query_signals(Query(q): Query<SignalsQuery>) -> impl IntoResponse {
 // any Enter or Watch signals, and returns them.  Skip signals are returned
 // but not persisted (they carry no actionable information for backtesting).
 
+/// Allowed CoinGecko coin IDs for multi-asset analysis.
+const ALLOWED_ASSETS: &[&str] = &["bitcoin", "ethereum", "solana"];
+
 #[derive(Debug, Deserialize)]
 pub struct AnalyzeSignalsRequest {
     /// NYC lat/lon for weather feed; defaults to 40.7128 / -74.0060.
@@ -172,6 +179,10 @@ pub struct AnalyzeSignalsRequest {
     pub weather_above: Option<bool>,
     /// BTC price history days (default 30).
     pub btc_days: Option<usize>,
+    /// Additional CoinGecko assets to analyze, e.g. ["ethereum", "solana"].
+    pub assets: Option<Vec<String>>,
+    /// Kalshi series tickers to analyze, e.g. ["KXHIGHNY", "KXBTC"].
+    pub kalshi_series: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -213,8 +224,9 @@ pub async fn analyze_and_store(
                     let record = kalshi_signal_to_record(&sig, "weather/temperature", now);
                     let should_persist = sig.action != SignalAction::Skip;
                     if should_persist {
-                        if let Err(e) = store.store_signal(&record) {
-                            errors.push(format!("persist weather signal: {}", e));
+                        match store.store_signal(&record) {
+                            Ok(()) => sse::broadcast_signal(&record),
+                            Err(e) => errors.push(format!("persist weather signal: {}", e)),
                         }
                     }
                     results.push(PersistableSignal {
@@ -231,8 +243,9 @@ pub async fn analyze_and_store(
                     let record = kalshi_signal_to_record(&sig, "weather/regime-shift", now);
                     let should_persist = sig.action != SignalAction::Skip;
                     if should_persist {
-                        if let Err(e) = store.store_signal(&record) {
-                            errors.push(format!("persist regime-shift signal: {}", e));
+                        match store.store_signal(&record) {
+                            Ok(()) => sse::broadcast_signal(&record),
+                            Err(e) => errors.push(format!("persist regime-shift signal: {}", e)),
                         }
                     }
                     results.push(PersistableSignal {
@@ -255,8 +268,9 @@ pub async fn analyze_and_store(
                     let record = kalshi_signal_to_record(&sig, "price/BTC-USD", now);
                     let should_persist = sig.action != SignalAction::Skip;
                     if should_persist {
-                        if let Err(e) = store.store_signal(&record) {
-                            errors.push(format!("persist BTC signal: {}", e));
+                        match store.store_signal(&record) {
+                            Ok(()) => sse::broadcast_signal(&record),
+                            Err(e) => errors.push(format!("persist BTC signal: {}", e)),
                         }
                     }
                     results.push(PersistableSignal {
@@ -268,6 +282,136 @@ pub async fn analyze_and_store(
             }
         }
         Err(e) => errors.push(format!("BTC fetch: {}", e)),
+    }
+
+    // ── Additional asset price signals ───────────────────────────────────────
+    if let Some(ref assets) = payload.assets {
+        for asset_id in assets {
+            let asset_lower = asset_id.to_lowercase();
+            if !ALLOWED_ASSETS.contains(&asset_lower.as_str()) {
+                errors.push(format!(
+                    "skipping unsupported asset '{}' (allowed: {:?})",
+                    asset_id, ALLOWED_ASSETS
+                ));
+                continue;
+            }
+
+            // Skip bitcoin -- already handled above
+            if asset_lower == "bitcoin" {
+                continue;
+            }
+
+            let ticker = format!("{}-USD", asset_lower.to_uppercase());
+            let signal_type = format!("price/{}", ticker);
+
+            match feeds::prices::fetch_exchange_price(&asset_lower, btc_days).await {
+                Ok(prices) => {
+                    match engine.price_regime_signal(&ticker, &prices) {
+                        Ok(sig) => {
+                            let record =
+                                kalshi_signal_to_record(&sig, &signal_type, now);
+                            let should_persist = sig.action != SignalAction::Skip;
+                            if should_persist {
+                                match store.store_signal(&record) {
+                                    Ok(()) => sse::broadcast_signal(&record),
+                                    Err(e) => errors.push(format!(
+                                        "persist {} signal: {}",
+                                        ticker, e
+                                    )),
+                                }
+                            }
+                            results.push(PersistableSignal {
+                                persisted: should_persist,
+                                record,
+                            });
+                        }
+                        Err(e) => {
+                            errors.push(format!("{} price signal: {}", ticker, e))
+                        }
+                    }
+                }
+                Err(e) => errors.push(format!("{} fetch: {}", ticker, e)),
+            }
+        }
+    }
+
+    // ── Kalshi market price signals ──────────────────────────────────────────
+    if let Some(ref series_list) = payload.kalshi_series {
+        match KalshiClient::new() {
+            Ok(kalshi_client) => {
+                for series_ticker in series_list {
+                    let signal_type = format!("kalshi/{}", series_ticker);
+
+                    // Fetch markets in the series, use the first open market's history
+                    match kalshi_client.get_markets(series_ticker).await {
+                        Ok(markets) if !markets.is_empty() => {
+                            let market_ticker = &markets[0].ticker;
+                            match kalshi_client
+                                .get_market_history(market_ticker)
+                                .await
+                            {
+                                Ok(prices) => {
+                                    match engine
+                                        .price_regime_signal(market_ticker, &prices)
+                                    {
+                                        Ok(sig) => {
+                                            let record = kalshi_signal_to_record(
+                                                &sig,
+                                                &signal_type,
+                                                now,
+                                            );
+                                            let should_persist =
+                                                sig.action != SignalAction::Skip;
+                                            if should_persist {
+                                                match store.store_signal(&record) {
+                                                    Ok(()) => {
+                                                        sse::broadcast_signal(&record)
+                                                    }
+                                                    Err(e) => errors.push(format!(
+                                                        "persist kalshi {} signal: {}",
+                                                        series_ticker, e
+                                                    )),
+                                                }
+                                            }
+                                            results.push(PersistableSignal {
+                                                persisted: should_persist,
+                                                record,
+                                            });
+                                        }
+                                        Err(e) => errors.push(format!(
+                                            "kalshi {} regime signal: {}",
+                                            series_ticker, e
+                                        )),
+                                    }
+                                }
+                                Err(e) => errors.push(format!(
+                                    "kalshi {} history fetch: {}",
+                                    market_ticker, e
+                                )),
+                            }
+                        }
+                        Ok(_) => {
+                            errors.push(format!(
+                                "kalshi series '{}': no open markets found",
+                                series_ticker
+                            ));
+                        }
+                        Err(e) => errors.push(format!(
+                            "kalshi series '{}' fetch: {}",
+                            series_ticker, e
+                        )),
+                    }
+                }
+            }
+            Err(_) => {
+                errors.push(
+                    "Kalshi credentials not configured; skipping kalshi_series analysis. \
+                     Set KALSHI_API_KEY_ID and KALSHI_PRIVATE_KEY_PATH or create \
+                     ~/.config/kalshi/credentials.json."
+                        .to_string(),
+                );
+            }
+        }
     }
 
     let persisted_count = results.iter().filter(|r| r.persisted).count();

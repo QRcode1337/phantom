@@ -139,3 +139,12 @@ body::after {
 .border-gradient-v {
   border-image: linear-gradient(to bottom, rgba(255,255,255,0.12), transparent) 1;
 }
+
+/* ─── SSE signal flash animation ─────────────────────────────────────────── */
+@keyframes signal-flash {
+  0%   { box-shadow: 0 0 0 2px rgba(0,255,136,0.6); }
+  100% { box-shadow: 0 0 0 2px rgba(0,255,136,0); }
+}
+.signal-flash {
+  animation: signal-flash 2s ease-out;
+}
