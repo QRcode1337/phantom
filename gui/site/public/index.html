@@ -1,0 +1,230 @@
+<!-- Phantom Engine Overview Dashboard -->
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Phantom Tactical Glass Variant</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400&amp;family=JetBrains+Mono:wght@100;400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00ff88",
+                        "secondary": "#ffbb00",
+                        "alert": "#ff3333",
+                        "phantom-purple": "#1a0b2e",
+                        "phantom-charcoal": "#0a0a0c",
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply bg-phantom-charcoal text-white/90 antialiased overflow-x-hidden;
+                background: radial-gradient(circle at top right, #2d1b4d 0%, #0a0a0c 60%),
+                            linear-gradient(135deg, #0a0a0c 0%, #1a0b2e 100%);
+                background-attachment: fixed;
+                font-family: 'Inter', sans-serif;
+            }
+        }
+        .glass-card {
+            @apply backdrop-blur-2xl bg-white/5 border border-white/10 shadow-2xl;
+        }
+        .hairline {
+            font-weight: 100;
+        }
+        .aurora-green {
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.15) 0%, rgba(0, 255, 136, 0) 70%);
+        }
+        .aurora-yellow {
+            background: radial-gradient(circle, rgba(255, 187, 0, 0.1) 0%, rgba(255, 187, 0, 0) 70%);
+        }
+        .aurora-red {
+            background: radial-gradient(circle, rgba(255, 51, 51, 0.15) 0%, rgba(255, 51, 51, 0) 70%);
+        }
+        .ribbon-3d {
+            filter: drop-shadow(0 10px 15px rgba(0, 255, 136, 0.3));
+            transform: perspective(500px) rotateX(10deg);
+        }
+        .parallax-item {
+            transform: translateZ(0);
+            transition: transform 0.3s ease-out;
+        }
+        .parallax-item:active {
+            transform: scale(0.98) translateY(2px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen">
+<header class="sticky top-0 z-[100] p-6 backdrop-blur-md flex justify-between items-center border-b border-white/5">
+<div class="flex flex-col">
+<h1 class="font-mono text-xl tracking-[0.2em] hairline">PHANTOM // ENGINE</h1>
+<div class="flex items-center gap-2 mt-1">
+<div class="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_#00ff88]"></div>
+<span class="text-[9px] font-mono tracking-[0.3em] uppercase opacity-60">Tactical OS v3.0</span>
+</div>
+</div>
+<div class="glass-card rounded-full p-2">
+<span class="material-symbols-outlined text-white/40 text-3xl">hub</span>
+</div>
+</header>
+<main class="relative px-4 pb-32 space-y-6 -mt-2">
+<div class="grid grid-cols-3 gap-3">
+<div class="glass-card p-4 rounded-3xl relative overflow-hidden group">
+<div class="absolute -right-2 -top-2 opacity-10">
+<span class="material-symbols-outlined text-4xl">radar</span>
+</div>
+<p class="text-[9px] hairline uppercase tracking-widest opacity-50 mb-1">Opps</p>
+<p class="font-mono text-xl hairline">12</p>
+</div>
+<div class="glass-card p-4 rounded-3xl relative overflow-hidden group">
+<div class="absolute -right-2 -top-2 opacity-10">
+<span class="material-symbols-outlined text-4xl">blur_on</span>
+</div>
+<p class="text-[9px] hairline uppercase tracking-widest opacity-50 mb-1">Chaos</p>
+<p class="font-mono text-xl hairline">0.42</p>
+</div>
+<div class="glass-card p-4 rounded-3xl relative overflow-hidden group">
+<div class="absolute -right-2 -top-2 opacity-10">
+<span class="material-symbols-outlined text-4xl">speed</span>
+</div>
+<p class="text-[9px] hairline uppercase tracking-widest opacity-50 mb-1">Sync</p>
+<p class="font-mono text-xl hairline text-primary">14<span class="text-[10px]">ms</span></p>
+</div>
+</div>
+<section class="glass-card rounded-[2.5rem] overflow-hidden">
+<div class="p-6 border-b border-white/5 flex justify-between items-end">
+<div>
+<h3 class="text-[10px] hairline uppercase tracking-[0.4em] opacity-40 mb-2">Weather Engine</h3>
+<div class="flex items-baseline gap-2">
+<span class="text-2xl hairline">Global Edge</span>
+<span class="text-primary font-mono text-sm">+4.2%</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-white/20 text-4xl">language</span>
+</div>
+<div class="divide-y divide-white/5">
+<div class="p-6 flex items-center justify-between relative group overflow-hidden">
+<div class="absolute inset-0 aurora-green opacity-50"></div>
+<div class="relative z-10 flex flex-col">
+<span class="text-lg hairline tracking-wider">NIKKEI 225</span>
+<span class="text-[10px] font-mono opacity-50">JAPAN // PACIFIC</span>
+</div>
+<div class="relative z-10 flex flex-col items-end">
+<span class="text-primary font-mono text-xs mb-1">ENTER</span>
+<div class="w-12 h-[1px] bg-primary/30"></div>
+</div>
+</div>
+<div class="p-6 flex items-center justify-between relative overflow-hidden">
+<div class="absolute inset-0 aurora-yellow opacity-30"></div>
+<div class="relative z-10 flex flex-col">
+<span class="text-lg hairline tracking-wider">SPX // 500</span>
+<span class="text-[10px] font-mono opacity-50">US // EQUITY</span>
+</div>
+<div class="relative z-10 flex flex-col items-end">
+<span class="text-secondary font-mono text-xs mb-1">WATCH</span>
+<div class="w-8 h-[1px] bg-secondary/30"></div>
+</div>
+</div>
+</div>
+</section>
+<section class="glass-card rounded-[2.5rem] p-6 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-6 opacity-10">
+<span class="material-symbols-outlined text-6xl">show_chart</span>
+</div>
+<div class="mb-8">
+<h3 class="text-[10px] hairline uppercase tracking-[0.4em] opacity-40 mb-1">Price Regime</h3>
+<div class="flex justify-between items-center">
+<span class="text-2xl hairline">BTC / USD</span>
+<span class="font-mono text-lg hairline tracking-tighter">64,281.02</span>
+</div>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-[10px] font-mono text-secondary">REGIME: VOLATILE_BREAKOUT</span>
+</div>
+</div>
+<div class="h-32 w-full ribbon-3d">
+<svg class="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
+<defs>
+<linearGradient id="ribbonGradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#00ff88" stop-opacity="0.6"></stop>
+<stop offset="100%" stop-color="#00ff88" stop-opacity="0"></stop>
+</linearGradient>
+</defs>
+<path d="M0,80 Q50,70 100,85 T200,30 T300,50 T400,10" fill="none" stroke="#00ff88" stroke-linecap="round" stroke-width="3"></path>
+<path d="M0,80 Q50,70 100,85 T200,30 T300,50 T400,10 V100 H0 Z" fill="url(#ribbonGradient)"></path>
+<path d="M0,80 Q50,70 100,85 T200,30 T300,50 T400,10" fill="none" opacity="0.3" stroke="white" stroke-dasharray="2 2" stroke-width="0.5" transform="translate(0, -3)"></path>
+</svg>
+</div>
+</section>
+<section class="space-y-3">
+<div class="flex justify-between items-center px-2">
+<h3 class="text-[10px] hairline uppercase tracking-[0.4em] opacity-40">Argus Feed</h3>
+<div class="flex items-center gap-2">
+<div class="w-1 h-1 rounded-full bg-alert animate-pulse"></div>
+<span class="text-[9px] font-mono text-alert">LIVE_STREAM</span>
+</div>
+</div>
+<div class="glass-card p-5 rounded-3xl relative overflow-hidden parallax-item">
+<div class="absolute inset-0 aurora-red opacity-40"></div>
+<div class="relative z-10 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-alert/60 text-4xl">warning</span>
+<div class="flex flex-col">
+<span class="text-sm hairline uppercase tracking-widest text-alert">Critical Anomaly</span>
+<span class="font-mono text-[10px] opacity-40">HEX_SIGNAL: 0xAFF4</span>
+</div>
+</div>
+<span class="font-mono text-[10px] text-alert border border-alert/30 px-2 py-0.5 rounded">NOW</span>
+</div>
+</div>
+<div class="glass-card p-5 rounded-3xl relative overflow-hidden parallax-item opacity-80 scale-95 translate-y-[-10px]">
+<div class="relative z-10 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-white/20 text-4xl">analytics</span>
+<div class="flex flex-col">
+<span class="text-sm hairline uppercase tracking-widest">Latency Spike</span>
+<span class="font-mono text-[10px] opacity-40">ID: 0x82C1 // NODE_B</span>
+</div>
+</div>
+<span class="font-mono text-[10px] opacity-40">2M AGO</span>
+</div>
+</div>
+</section>
+</main>
+<nav class="fixed bottom-0 left-0 right-0 p-6 z-[100]">
+<div class="glass-card rounded-[2.5rem] px-8 py-4 flex justify-between items-center border-white/20">
+<a class="flex flex-col items-center gap-1 group" href="index.html">
+<span class="material-symbols-outlined text-primary text-3xl opacity-80 group-active:scale-110 transition-transform">grid_view</span>
+<span class="text-[8px] hairline uppercase tracking-widest text-primary">Core</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="weather.html">
+<span class="material-symbols-outlined text-white/30 text-3xl group-active:scale-110 transition-transform">cloud</span>
+<span class="text-[8px] hairline uppercase tracking-widest opacity-30">Weather</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="price.html">
+<span class="material-symbols-outlined text-white/30 text-3xl group-active:scale-110 transition-transform">show_chart</span>
+<span class="text-[8px] hairline uppercase tracking-widest opacity-30">Price</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="argus.html">
+<span class="material-symbols-outlined text-white/30 text-3xl group-active:scale-110 transition-transform">radar</span>
+<span class="text-[8px] hairline uppercase tracking-widest opacity-30">Argus</span>
+</a>
+</div>
+</nav>
+
+</body></html>

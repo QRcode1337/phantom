@@ -1,0 +1,36 @@
+# Build artifacts
+/target/
+/phantom-ui/.next/
+/phantom-ui/node_modules/
+
+# Environment & secrets
+.env
+.env.local
+*.pem
+signals.jsonl
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude-flow runtime
+.swarm/
+.claude-flow/
+phantom-ui/.swarm/
+
+# Claude Code config (agents, skills, helpers, commands)
+.claude/
+!.claude/settings.json
+
+# Session data
+.superpowers/
+
+# Misc
+*.log
+2026-*.txt

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Phantom Tactical Weather View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;700&amp;family=JetBrains+Mono:wght@100;300;400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00ff88",
+                        "solar": "#ffbb00",
+                        "background-light": "#1a1a2e",
+                        "background-dark": "#0a0a0f",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "2.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background: radial-gradient(circle at top right, #1a1b3a, #050505);
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glow-primary {
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+        .hairline {
+            font-weight: 100;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display text-slate-100 antialiased overflow-x-hidden pb-32">
+<!-- Header Section -->
+<header class="flex items-center justify-between p-6 pt-12">
+<div class="flex items-center gap-3">
+<div class="glass-panel w-12 h-12 rounded-full flex items-center justify-center relative">
+<span class="material-symbols-outlined text-primary">cloud</span>
+<div class="absolute top-0 right-0 w-3 h-3 bg-primary rounded-full glow-primary border-2 border-background-dark"></div>
+</div>
+<div>
+<h1 class="font-mono text-sm tracking-[0.3em] text-slate-400">PHANTOM //</h1>
+<p class="font-bold text-xl tracking-tight">WEATHER</p>
+</div>
+</div>
+<button class="glass-panel w-12 h-12 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-400">settings_input_antenna</span>
+</button>
+</header>
+<!-- Top Metrics -->
+<div class="px-6 grid grid-cols-3 gap-3 mb-8">
+<div class="glass-panel rounded-xl p-4 flex flex-col gap-1">
+<span class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-mono">Ensembles</span>
+<span class="text-xl hairline">14</span>
+</div>
+<div class="glass-panel rounded-xl p-4 flex flex-col gap-1">
+<span class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-mono">Diverge</span>
+<span class="text-xl hairline text-primary">2.1°C</span>
+</div>
+<div class="glass-panel rounded-xl p-4 flex flex-col gap-1 border-primary/20">
+<span class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-mono font-bold">Opps</span>
+<span class="text-xl hairline">02</span>
+</div>
+</div>
+<!-- Main Panel: Scan -->
+<section class="px-6 mb-8">
+<div class="glass-panel rounded-xl p-6 overflow-hidden relative">
+<div class="relative z-10">
+<h2 class="font-mono text-xs uppercase tracking-[0.3em] text-slate-400 mb-1">Ensemble Divergence Scan</h2>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl hairline">Anomalous Flow</span>
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+</div>
+</div>
+<!-- Abstract 3D Ribbon SVG -->
+<div class="mt-4 -mx-6 h-48 relative">
+<svg class="w-full h-full opacity-60" viewbox="0 0 500 200">
+<defs>
+<lineargradient id="ribbonGrad" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" style="stop-color:#00ff88;stop-opacity:0.8"></stop>
+<stop offset="50%" style="stop-color:#0088ff;stop-opacity:0.4"></stop>
+<stop offset="100%" style="stop-color:transparent;stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,100 Q125,50 250,100 T500,100 V200 H0 Z" fill="url(#ribbonGrad)"></path>
+<path d="M0,110 Q125,60 250,110 T500,110" fill="none" stroke="#00ff88" stroke-width="0.5"></path>
+<path d="M0,90 Q125,40 250,90 T500,90" fill="none" opacity="0.5" stroke="#00ff88" stroke-width="0.5"></path>
+</svg>
+</div>
+</div>
+</section>
+<!-- Market List -->
+<section class="px-6 space-y-4">
+<h3 class="font-mono text-[10px] uppercase tracking-[0.4em] text-slate-500 px-2">Active Kalshi Markets</h3>
+<!-- Market Row 1 -->
+<div class="glass-panel rounded-xl p-5 flex items-center justify-between border-l-4 border-l-primary shadow-[0_0_20px_rgba(0,255,136,0.05)]">
+<div class="flex flex-col">
+<span class="font-mono text-[10px] tracking-widest text-slate-500 uppercase">Chicago High / Jun 14</span>
+<span class="text-lg font-light tracking-wide text-slate-100">Above 92°F</span>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="text-primary font-mono text-xs tracking-tighter">74% PROB</span>
+<button class="bg-primary/20 text-primary border border-primary/30 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-[0.1em] uppercase hover:bg-primary hover:text-black transition-colors">
+                    Enter
+                </button>
+</div>
+</div>
+<!-- Market Row 2 -->
+<div class="glass-panel rounded-xl p-5 flex items-center justify-between border-l-4 border-l-solar">
+<div class="flex flex-col">
+<span class="font-mono text-[10px] tracking-widest text-slate-500 uppercase">NYC Precipitation</span>
+<span class="text-lg font-light tracking-wide text-slate-100">&gt; 0.5 in</span>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="text-solar font-mono text-xs tracking-tighter">42% PROB</span>
+<button class="bg-solar/20 text-solar border border-solar/30 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-[0.1em] uppercase hover:bg-solar hover:text-black transition-colors">
+                    Watch
+                </button>
+</div>
+</div>
+<!-- Market Row 3 -->
+<div class="glass-panel rounded-xl p-5 flex items-center justify-between border-l-4 border-l-slate-700">
+<div class="flex flex-col">
+<span class="font-mono text-[10px] tracking-widest text-slate-500 uppercase">LAX Wind Gusts</span>
+<span class="text-lg font-light tracking-wide text-slate-100">Over 25mph</span>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="text-slate-500 font-mono text-xs tracking-tighter">18% PROB</span>
+<button class="bg-white/5 text-slate-300 border border-white/10 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-[0.1em] uppercase">
+                    Alert
+                </button>
+</div>
+</div>
+</section>
+<!-- Sticky Navigation Pill -->
+<nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[85%] max-w-md z-50">
+<div class="glass-panel rounded-full px-4 py-3 flex items-center justify-around shadow-2xl backdrop-blur-3xl border-white/20">
+<a class="w-10 h-10 flex items-center justify-center rounded-full text-slate-500 hover:text-white transition-colors" href="index.html">
+<span class="material-symbols-outlined">grid_view</span>
+</a>
+<a class="w-12 h-12 flex items-center justify-center rounded-full bg-primary text-black glow-primary" href="weather.html">
+<span class="material-symbols-outlined font-bold">cloud</span>
+</a>
+<a class="w-10 h-10 flex items-center justify-center rounded-full text-slate-500 hover:text-white transition-colors" href="price.html">
+<span class="material-symbols-outlined">show_chart</span>
+</a>
+<a class="w-10 h-10 flex items-center justify-center rounded-full text-slate-500 hover:text-white transition-colors" href="argus.html">
+<span class="material-symbols-outlined">radar</span>
+</a>
+</div>
+</nav>
+<!-- Abstract background texture elements -->
+<div class="fixed top-[-10%] right-[-10%] w-64 h-64 bg-primary/10 blur-[120px] rounded-full pointer-events-none"></div>
+<div class="fixed bottom-[10%] left-[-10%] w-80 h-80 bg-blue-600/10 blur-[150px] rounded-full pointer-events-none"></div>
+</body></html>

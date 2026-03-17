@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Phantom Tactical Price View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;700&amp;family=JetBrains+Mono:wght@100;400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#0df287",
+                "accent-pink": "#ff007a",
+                "accent-yellow": "#f9d423",
+                "background-light": "#f5f8f7",
+                "background-dark": "#0a0a0f",
+              },
+              fontFamily: {
+                "display": ["Inter", "sans-serif"],
+                "mono": ["JetBrains Mono", "monospace"]
+              },
+              borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+        }
+        .tactical-gradient {
+            background: radial-gradient(circle at top right, #1a1a2e, #0a0a0f);
+        }
+        .glow-green { box-shadow: 0 0 15px rgba(13, 242, 135, 0.4); }
+        .hairline { font-weight: 100; letter-spacing: 0.1em; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-dark font-display text-slate-100 min-h-screen selection:bg-primary/30">
+<div class="relative flex h-full min-h-screen w-full flex-col tactical-gradient overflow-x-hidden pb-24">
+<!-- Header Section -->
+<header class="flex items-center p-6 justify-between sticky top-0 z-50 bg-background-dark/40 backdrop-blur-md">
+<div class="flex items-center gap-3">
+<div class="size-2 rounded-full bg-primary glow-green"></div>
+<h1 class="text-slate-100 font-mono text-sm tracking-[0.3em] font-light">PHANTOM // PRICE</h1>
+</div>
+<div class="glass-panel size-11 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[20px]">show_chart</span>
+</div>
+</header>
+<!-- Top Metrics -->
+<div class="grid grid-cols-3 gap-3 px-4 py-2">
+<div class="glass-panel rounded-xl p-4 flex flex-col gap-1 border-white/5">
+<p class="text-[10px] font-mono uppercase text-slate-400 tracking-widest">Tracked</p>
+<p class="text-xl font-light font-display">24</p>
+</div>
+<div class="glass-panel rounded-xl p-4 flex flex-col gap-1 border-white/5">
+<p class="text-[10px] font-mono uppercase text-slate-400 tracking-widest">Volat.</p>
+<p class="text-xl font-light font-display text-accent-pink">HIGH</p>
+</div>
+<div class="glass-panel rounded-xl p-4 flex flex-col gap-1 border-white/5">
+<p class="text-[10px] font-mono uppercase text-slate-400 tracking-widest">Regimes</p>
+<p class="text-xl font-light font-display text-primary">03</p>
+</div>
+</div>
+<!-- Main Visualization Panel -->
+<section class="px-4 pt-6">
+<div class="glass-panel rounded-xl overflow-hidden relative min-h-[320px] flex flex-col items-center justify-center p-6 border-white/10">
+<div class="absolute top-4 left-6 flex flex-col">
+<h2 class="text-[10px] font-mono text-slate-400 uppercase tracking-[0.2em] mb-1">Chaos Phase Space Reconstruction</h2>
+<div class="h-[1px] w-12 bg-primary/40"></div>
+</div>
+<!-- Lorenz Attractor SVG Visualization -->
+<div class="relative w-full h-full flex items-center justify-center py-8">
+<svg class="w-full h-64 drop-shadow-[0_0_15px_rgba(13,242,135,0.2)]" viewbox="0 0 200 200">
+<defs>
+<lineargradient id="attractorGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#0df287;stop-opacity:1"></stop>
+<stop offset="50%" style="stop-color:#ff007a;stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#f9d423;stop-opacity:1"></stop>
+</lineargradient>
+<filter id="glow">
+<fegaussianblur result="coloredBlur" stddeviation="1.5"></fegaussianblur>
+<femerge>
+<femergenode in="coloredBlur"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+</defs>
+<!-- Abstract Path mimicking Lorenz dynamics -->
+<path class="opacity-80" d="M100,100 C140,20 180,100 100,180 C20,100 60,20 100,100 M100,100 C120,40 160,80 100,140 C40,80 80,40 100,100" fill="none" filter="url(#glow)" stroke="url(#attractorGradient)" stroke-width="0.5"></path>
+<path class="opacity-30" d="M100,100 C150,30 190,110 100,190 C10,110 50,30 100,100" fill="none" stroke="#0df287" stroke-width="0.25"></path>
+<!-- Complex background layers -->
+<circle class="opacity-10" cx="100" cy="100" fill="none" r="70" stroke="white" stroke-dasharray="2,2" stroke-width="0.1"></circle>
+</svg>
+<!-- Floating Data Points -->
+<div class="absolute inset-0 pointer-events-none">
+<div class="absolute top-1/4 left-1/4 size-1 bg-primary rounded-full blur-[1px]"></div>
+<div class="absolute bottom-1/3 right-1/4 size-1 bg-accent-pink rounded-full blur-[1px]"></div>
+</div>
+</div>
+<div class="absolute bottom-4 right-6 text-right">
+<p class="text-[8px] font-mono text-slate-500">ENGINE STATE: NOMINAL</p>
+<p class="text-[8px] font-mono text-slate-500">SAMPLING: 1024Hz</p>
+</div>
+</div>
+</section>
+<!-- Regime List -->
+<section class="px-4 pt-8 pb-12 space-y-4">
+<h3 class="px-2 text-[10px] font-mono text-slate-400 uppercase tracking-[0.2em]">Active Regime Monitoring</h3>
+<!-- Asset Row: BTC -->
+<div class="relative group">
+<div class="absolute inset-0 bg-primary/5 blur-xl rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="glass-panel rounded-xl p-5 flex items-center justify-between border-primary/20 bg-primary/5">
+<div class="flex flex-col gap-1">
+<span class="text-xs font-mono text-primary tracking-widest uppercase">BTC/USD</span>
+<span class="text-xl font-light">64,281.02</span>
+</div>
+<div class="flex flex-col items-end gap-1">
+<span class="text-[10px] font-mono text-slate-400">CHAOS SCORE</span>
+<span class="text-sm font-mono text-primary">0.92 // HIGH</span>
+</div>
+<div class="h-8 w-[1px] bg-white/10 mx-2"></div>
+<div class="text-primary text-xs font-mono tracking-tighter">TRENDING</div>
+</div>
+</div>
+<!-- Asset Row: ETH -->
+<div class="relative group">
+<div class="glass-panel rounded-xl p-5 flex items-center justify-between border-white/5">
+<div class="flex flex-col gap-1">
+<span class="text-xs font-mono text-slate-400 tracking-widest uppercase">ETH/USD</span>
+<span class="text-xl font-light text-slate-200">3,452.11</span>
+</div>
+<div class="flex flex-col items-end gap-1">
+<span class="text-[10px] font-mono text-slate-400">CHAOS SCORE</span>
+<span class="text-sm font-mono text-slate-300">0.45 // STABLE</span>
+</div>
+<div class="h-8 w-[1px] bg-white/10 mx-2"></div>
+<div class="text-slate-500 text-xs font-mono tracking-tighter">LATERAL</div>
+</div>
+</div>
+<!-- Asset Row: SOL (Breakout State) -->
+<div class="relative group">
+<div class="absolute inset-0 bg-accent-yellow/5 blur-xl rounded-xl opacity-100"></div>
+<div class="glass-panel rounded-xl p-5 flex items-center justify-between border-accent-yellow/30 bg-accent-yellow/5">
+<div class="flex flex-col gap-1">
+<span class="text-xs font-mono text-accent-yellow tracking-widest uppercase">SOL/USD</span>
+<span class="text-xl font-light">142.85</span>
+</div>
+<div class="flex flex-col items-end gap-1">
+<span class="text-[10px] font-mono text-slate-400">CHAOS SCORE</span>
+<span class="text-sm font-mono text-accent-yellow">0.98 // CRITICAL</span>
+</div>
+<div class="h-8 w-[1px] bg-white/10 mx-2"></div>
+<div class="text-accent-yellow text-xs font-mono tracking-tighter">BREAKOUT</div>
+</div>
+</div>
+</section>
+<!-- Sticky Bottom Nav -->
+<nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[85%] max-w-[400px] z-50">
+<div class="glass-panel rounded-full px-4 py-3 flex items-center justify-around shadow-2xl border-white/10">
+<a class="text-slate-400 hover:text-primary flex flex-col items-center" href="index.html">
+<span class="material-symbols-outlined text-[24px]">grid_view</span>
+</a>
+<a class="text-slate-400 hover:text-primary flex flex-col items-center" href="weather.html">
+<span class="material-symbols-outlined text-[24px]">cloud</span>
+</a>
+<a class="text-primary flex flex-col items-center relative" href="price.html">
+<span class="material-symbols-outlined text-[24px]">show_chart</span>
+<div class="absolute -bottom-1 size-1 bg-primary rounded-full"></div>
+</a>
+<a class="text-slate-400 hover:text-primary flex flex-col items-center" href="argus.html">
+<span class="material-symbols-outlined text-[24px]">radar</span>
+</a>
+</div>
+</nav>
+</div>
+</body></html>
