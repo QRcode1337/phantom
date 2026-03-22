@@ -1,0 +1,27 @@
+{
+  "ignorePatterns": "node_modules\ndist\nbuild\ncoverage\n.next\npackage-lock.json\npnpm-lock.yaml\nyarn.lock\n*.min.js\n*.map",
+  "customContext": {
+    "files": [
+      {
+        "scope": [
+          "src/**/*.{ts,tsx,js,jsx,py}",
+          "conductor/**/*.{ts,tsx,js,jsx,py}",
+          "gui/**/*.{ts,tsx,js,jsx,css}",
+          "phantom-ui/**/*.{ts,tsx,js,jsx,css}"
+        ],
+        "path": "AGENTS.md",
+        "description": "Project operating instructions and agent workflow guidance"
+      },
+      {
+        "scope": [
+          "src/**/*.{ts,tsx,js,jsx,py}",
+          "conductor/**/*.{ts,tsx,js,jsx,py}",
+          "gui/**/*.{ts,tsx,js,jsx,css}",
+          "phantom-ui/**/*.{ts,tsx,js,jsx,css}"
+        ],
+        "path": "CLAUDE.md",
+        "description": "Project-specific coding conventions and review context"
+      }
+    ]
+  }
+}
